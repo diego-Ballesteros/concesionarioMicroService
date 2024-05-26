@@ -1,5 +1,6 @@
 package com.unimagdalena.carinventoryservice.service;
 
+import com.unimagdalena.carinventoryservice.persistence.dto.CarDtoSave;
 import com.unimagdalena.carinventoryservice.persistence.dto.CarDtoSend;
 import com.unimagdalena.carinventoryservice.persistence.entity.CarInventoryEntity;
 import com.unimagdalena.carinventoryservice.persistence.mapper.ICarMapper;
@@ -44,5 +45,20 @@ public class CarServiceIMPL implements ICarService {
                 .stream().map(car -> this.iCarMapper.carEntityToCarDtoSend(car))
                 .collect(Collectors.toList());
         return carDtoSendList;
+    }
+
+    @Override
+    public CarDtoSend save(CarDtoSave carDtoSave) {
+        return null;
+    }
+
+    @Override
+    public CarDtoSend reserve(UUID id) {
+        return null;
+    }
+
+    @Override
+    public CarDtoSend returnCar(UUID id, UUID idBooking) {
+        return null;
     }
 }
