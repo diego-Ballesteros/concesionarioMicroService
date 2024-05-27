@@ -1,0 +1,34 @@
+version: '3.9'
+services:
+  db-service2:
+    image: 'mysql:latest'
+    container_name: 'db-customerservice'
+    environment:
+      - 'MYSQL_DATABASE=db_customer'
+      - 'MYSQL_ROOT_PASSWORD=customer'
+      - 'MYSQL_USER=customer'
+      - 'MYSQL_PASSWORD=customer'
+    ports:
+      - '5401:3306'
+    networks:
+      - red
+  app-docker:
+    container_name: 'customerservicecontainer-app'
+    image: 'imagecustomerservice-app:1.0.0'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8001:8080'
+    depends_on:
+      - db-service2
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-service2:3306/db_customer
+      - DATABASE_USERNAME=customer
+      - DATABASE_PASSWORD=customer
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8070/eureka/
+    networks:
+      - red
+networks:
+  red:
+    name: 'red'

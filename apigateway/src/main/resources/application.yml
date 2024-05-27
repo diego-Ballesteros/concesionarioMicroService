@@ -1,0 +1,68 @@
+server:
+  port: 8060
+
+spring:
+  application:
+    name: apigateway
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: carinventoryservice-metrics
+            uri: lb://carinventoryservice
+            predicates:
+              - Path=/microservice/1.0.0./carinventoryservice/actuator/prometheus
+            filters:
+              - RewritePath=/microservice/1.0.0./carinventoryservice/actuator/prometheus, /actuator/prometheus
+          - id: carinventoryservice
+            uri: lb://carinventoryservice
+            predicates:
+              - Path=/microservice/1.0.0./carinventoryservice/**
+          - id: customerservice-metrics
+            uri: lb://customerservice
+            predicates:
+              - Path=/microservice/1.0.0./customers/actuator/prometheus
+            filters:
+              - RewritePath=/microservice/1.0.0./customers/actuator/prometheus, /actuator/prometheus
+          - id: customerservice
+            uri: lb://customerservice
+            predicates:
+              - Path=/microservice/1.0.0./customers/**
+          - id: bookingservice-metrics
+            uri: lb://boookingservice
+            predicates:
+              - Path=/microservice/1.0.0./booking/actuator/prometheus
+            filters:
+              - RewritePath=/microservice/1.0.0./booking/actuator/prometheus, /actuator/prometheus
+          - id: bookingservice
+            uri: lb://boookingservice
+            predicates:
+              - Path=/microservice/1.0.0./booking/**
+          - id: paymentservice-metrics
+            uri: lb://paymentservice
+            predicates:
+              - Path=/microservices/1.0.0./payment/actuator/prometheus
+            filters:
+              - RewritePath=/microservices/1.0.0./payment/actuator/prometheus, /actuator/prometheus
+          - id: paymentservice
+            uri: lb://paymentservice
+            predicates:
+              - Path=/microservices/1.0.0./payment/**
+
+
+logging:
+  level:
+    root: info
+    org.springframework.cloud.gateway: trace
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+  instance:
+    preferIpAddress: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus

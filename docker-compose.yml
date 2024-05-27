@@ -1,0 +1,172 @@
+version: '3'
+services:
+  eurekasserver:
+    container_name: eurekasserver
+    build:
+      context: ./eurekasserver
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8070"
+    expose:
+      - "8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - red
+  apigateway:
+    container_name: apigateway
+    build:
+      context: ./apigateway
+      dockerfile: Dockerfile
+    ports:
+      - "8181:8060"
+    expose:
+      - "8181"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8761/eureka/
+    depends_on:
+      - eurekasserver
+    networks:
+      - red
+  db-paymentservice:
+    image: 'mysql:latest'
+    container_name: 'db-paymentservice'
+    environment:
+      - 'MYSQL_DATABASE=db_payment'
+      - 'MYSQL_ROOT_PASSWORD=payment'
+      - 'MYSQL_USER=payment'
+      - 'MYSQL_PASSWORD=payment'
+    ports:
+      - '5402:3306'
+    networks:
+      - red
+  paymentservice:
+    container_name: 'paymentservice'
+    build:
+      context: ./paymentservice
+      dockerfile: Dockerfile
+    depends_on:
+      - db-paymentservice
+      - eurekasserver
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-paymentservice:3306/db_payment
+      - DATABASE_USERNAME=payment
+      - DATABASE_PASSWORD=payment
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8761/eureka/
+    networks:
+      - red
+  db-customerservice:
+    image: 'mysql:latest'
+    container_name: 'db-customerservice'
+    environment:
+      - 'MYSQL_DATABASE=db_customer'
+      - 'MYSQL_ROOT_PASSWORD=customer'
+      - 'MYSQL_USER=customer'
+      - 'MYSQL_PASSWORD=customer'
+    ports:
+      - '5401:3306'
+    networks:
+      - red
+  customerservice:
+    container_name: 'customerservice'
+    build:
+      context: ./customerservice
+      dockerfile: Dockerfile
+    depends_on:
+      - db-customerservice
+      - eurekasserver
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-customerservice:3306/db_customer
+      - DATABASE_USERNAME=customer
+      - DATABASE_PASSWORD=customer
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8761/eureka/
+    networks:
+      - red
+  db-bookingservice:
+    image: 'mysql:latest'
+    container_name: 'db-bookingservice'
+    environment:
+      - 'MYSQL_DATABASE=db_booking'
+      - 'MYSQL_ROOT_PASSWORD=booking'
+      - 'MYSQL_USER=booking'
+      - 'MYSQL_PASSWORD=booking'
+    ports:
+      - '5403:3306'
+    networks:
+      - red
+  bookingservice:
+    container_name: 'bookingservice'
+    build:
+      context: ./bookingservice
+      dockerfile: Dockerfile
+    depends_on:
+      - db-bookingservice
+      - eurekasserver
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-bookingservice:3306/db_booking
+      - DATABASE_USERNAME=booking
+      - DATABASE_PASSWORD=booking
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8761/eureka/
+    networks:
+      - red
+  db-carrepository:
+    image: 'mysql:latest'
+    container_name: 'db-carrepository'
+    environment:
+      - 'MYSQL_DATABASE=db_car'
+      - 'MYSQL_ROOT_PASSWORD=car'
+      - 'MYSQL_USER=car'
+      - 'MYSQL_PASSWORD=car'
+    ports:
+      - '5404:3306'
+    networks:
+      - red
+  carrepository:
+    container_name: 'carrepository'
+    build:
+      context: ./carrepository
+      dockerfile: Dockerfile
+    depends_on:
+      - db-carrepository
+      - eurekasserver
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-carrepository:3306/db_car
+      - DATABASE_USERNAME=car
+      - DATABASE_PASSWORD=car
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8761/eureka/
+    networks:
+      - red
+  prometheus:
+    image: prom/prometheus:v2.37.1
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - car
+      - bookingservice
+      - customerservice
+      - paymentservice
+    networks:
+      - red
+  grafana:
+    image: grafana/grafana-oss:8.5.2
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    networks:
+      - red
+networks:
+  red:
+    name: 'red'

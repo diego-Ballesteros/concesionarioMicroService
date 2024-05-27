@@ -1,0 +1,34 @@
+version: '3.9'
+services:
+  db-service4:
+    image: 'mysql:latest'
+    container_name: 'db-paymentService'
+    environment:
+      - 'MYSQL_DATABASE=db_payment'
+      - 'MYSQL_ROOT_PASSWORD=payment'
+      - 'MYSQL_USER=payment'
+      - 'MYSQL_PASSWORD=payment'
+    ports:
+      - '5403:3306'
+    networks:
+      - red
+  app-docker:
+    container_name: 'paymentServicecontainer-app'
+    image: 'imagepaymentservice-app:1.0.0'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8003:8080'
+    depends_on:
+      - db-service4
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-service4:3306/db_payment
+      - DATABASE_USERNAME=payment
+      - DATABASE_PASSWORD=payment
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8070/eureka/
+    networks:
+      - red
+networks:
+  red:
+    name: 'red'

@@ -1,0 +1,6 @@
+rootProject.name = 'concesionarioMicroServicie'
+
+include 'bookingservice'
+include 'carinventoryservice'
+include 'customerservice'
+include ''

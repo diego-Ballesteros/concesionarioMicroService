@@ -1,0 +1,34 @@
+version: '3.9'
+services:
+  db-service3:
+    image: 'mysql:latest'
+    container_name: 'db-bookingservice'
+    environment:
+      - 'MYSQL_DATABASE=db_book_service'
+      - 'MYSQL_ROOT_PASSWORD=booking'
+      - 'MYSQL_USER=booking'
+      - 'MYSQL_PASSWORD=booking'
+    ports:
+      - '5402:3306'
+    networks:
+      - red
+  app-docker:
+    container_name: 'bookingservicecontainer-app'
+    image: 'imageservice3-app:1.0.0'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8002:8080'
+    depends_on:
+      - db-service3
+    environment:
+      - DATABASE_URL=jdbc:mysql://db-service3:3306/db_book_service
+      - DATABASE_USERNAME=booking
+      - DATABASE_PASSWORD=booking
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://host.docker.internal:8070/eureka/
+    networks:
+      - red
+networks:
+  red:
+    name: 'red'
